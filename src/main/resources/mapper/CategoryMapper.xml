@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.apmall.dao.category.CategoryDAO">
+
+	<select id="selectCategories" resultType="com.apmall.dto.category.CategoryDto">
+		SELECT
+			A.category_no,
+			CASE
+				WHEN A.depth = 2
+					THEN B.category_name || '_' || A.category_name
+				ELSE A.category_name
+			END category_name
+		FROM category A
+		LEFT JOIN category B
+		ON A.parent_no = B.category_no
+	</select>
+
+	<insert id="insertCategory">
+		<selectKey keyProperty="category_no" resultType="_int" order="BEFORE">
+			SELECT IFNULL(MAX(category_no),0)+1 as category_no FROM category
+		</selectKey>
+		INSERT INTO category(
+			category_no, category_name, parent_no, depth
+		) VALUES (
+			#{category_no}, #{category_name}, #{parent_no}, #{depth}
+		)
+	</insert>
+
+	<update id="updateCategory">
+		UPDATE category
+		<set>
+			<if test="category_name != null and category_name!=''">
+				category_name = #{category_name},
+			</if>
+			<if test="parent_no != null and parent_no!=''">
+				parent_no = #{parent_no},
+			</if>
+			<if test="depth != null and depth!=''">
+				depth = #{depth},
+			</if>
+	   </set>
+		WHERE
+			category_no = #{category_no}
+	</update>
+
+	<delete id="deleteCategory">
+		DELETE
+		FROM category
+		WHERE
+			category_no = #{category_no}
+	</delete>
+
+</mapper>

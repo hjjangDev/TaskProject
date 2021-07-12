@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.apmall.dao.product.ProductDAO">
+    <select id="selectProducts" resultType="com.apmall.dto.product.ProductDto">
+        SELECT
+        	product_name, product_price, category_name
+        FROM product PRD
+        LEFT JOIN (
+			SELECT
+				A.category_no,
+				CASE
+					WHEN A.depth = 2
+						THEN B.category_name || '_' || A.category_name
+					ELSE A.category_name
+				END category_name
+			FROM category A
+			LEFT JOIN category B
+			ON A.parent_no = B.category_no
+        )CT
+        ON PRD.category_no = CT.category_no
+		<where>
+			<if test="product_id != null and product_id != ''">
+				AND product_id = #{product_id}
+			</if>
+			<if test="product_name != null and product_name != ''">
+				AND product_name = #{product_name}
+			</if>
+			<if test="category_name != null and category_name != ''">
+				AND CT.category_name = #{category_name}
+			</if>
+		</where>
+    </select>
+
+	<insert id="insertProduct">
+		<selectKey keyProperty="product_no" resultType="Integer" order="BEFORE">
+			SELECT IFNULL(MAX(product_no),0)+1 as product_no FROM PRODUCT
+		</selectKey>
+		INSERT INTO product(
+			product_no,	product_name, brand_name, product_price, category_no
+		) VALUES (
+			#{product_no}, #{product_name}, #{brand_name}, #{product_price}, #{category_no}
+		)
+	</insert>
+
+	<update id="updateProduct">
+		UPDATE product
+		<set>
+			<if test="product_name != null and product_name!=''">
+				product_name = #{product_name},
+			</if>
+			<if test="brand_name != null and brand_name!=''">
+				brand_name = #{brand_name},
+			</if>
+			<if test="product_price != null and product_price!=''">
+				product_price = #{product_price},
+			</if>
+			<if test="category_no != null and category_no!=''">
+				category_no = #{category_no},
+			</if>
+	   </set>
+		WHERE
+			product_no = #{product_no}
+	</update>
+
+	<delete id="deleteProduct">
+		DELETE
+		FROM product
+		WHERE
+			product_no = #{product_no}
+	</delete>
+
+</mapper>
