@@ -11,7 +11,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import javax.sql.DataSource;
 
-@MapperScan(basePackages="com.apmall.dao")
+@MapperScan(basePackages = "com.apmall.dao.**")
 @SpringBootApplication
 public class TaskApplication {
 
