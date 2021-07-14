@@ -8,10 +8,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.sql.DataSource;
 
-@MapperScan(basePackages = "com.apmall.dao.**")
+@EnableScheduling
+@MapperScan(basePackages = "com.apmall.dao.*")
 @SpringBootApplication
 public class TaskApplication {
 

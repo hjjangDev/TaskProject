@@ -1,15 +1,14 @@
 package com.apmall.service.cache;
 
-import java.util.Map;
-
 public interface CacheService {
 
-    public Object getCacheItemList(Map<String, String> paramMap, String flag) throws Exception;
+    public void setCache(Object beforeCacheList, String key) throws Exception;
 
-    public void cacheItem(Map<String, String> paramMap, String flag) throws Exception;
+    public Object getCache(String key);
 
-    public void replaceCache(Object list, String key_value);
+    public void evictCache(String key);
 
-    public String searchKeyValue(Map<String, String> paramMap, String flag);
+    public void replaceCache(Object beforCacheListWithTime, String key);
 
+    public boolean checkCacheExpired(String key);
 }

@@ -1,6 +1,6 @@
 package com.apmall.service.cache.impl;
 
-import com.apmall.dto.product.ProductDto;
+import com.apmall.dto.category.CategoryDto;
 import com.apmall.service.cache.CacheService;
 import com.apmall.service.category.CategoryService;
 import com.apmall.service.product.ProductService;
@@ -17,121 +17,125 @@ public class CacheServiceImpl implements CacheService, ApplicationRunner {
     private final CategoryService categoryService;
     private final ProductService productService;
 
-    @Value("${myCache.duration}")
-    private long cacheDuration;
-
-    @Value("${myCache.maxSize}")
+    @Value("${cache.maxSize}")
     private int cacheMaxSize;
 
-    Map<String, Object> cacheMap = new LinkedHashMap<>(); //순서를 유지하는 LinkedHashMap으로 캐시를 관리
-    Map<String, String> loadTimeMap;
+    @Value("${cache.product.duration}")
+    private int productCacheDuration;
+
+    Map<String, Object> cacheMap = Collections.synchronizedMap(new LinkedHashMap<>()); //순서를 유지하는 LinkedHashMap으로 캐시를 관리
 
     public CacheServiceImpl(CategoryService categoryService, ProductService productService) {
         this.categoryService = categoryService;
         this.productService = productService;
     }
 
-
+    /*
+    * case 2. Data Loading and Reloading
+    * 프로젝트 실행시 처음 한번 실행하여 전체 카테고리 목록, 카테고리별 상품 목록 캐싱
+    *
+    * case 4. Cache Optimization (Cache Miss의 처리 및 최소화 방법)
+    * 캐시 접근 빈도 : 카테고리 > 카테고리별 상품 > 특정 상품
+    * 카테고리와 카테고리별 상품을 미리 캐싱해오게 되므로 Cache Miss의 빈도를 줄일 수 있다.
+    * 특정 상품을 모두 캐싱하기엔 상품의 갯수가 많기 때문에 특정 상품은 사용자가 검색할때마다 캐싱한다.
+    * */
     @Override
-    public void run(ApplicationArguments args) throws Exception { //프로젝트 실행시 처음 한번 실행하여 전체 카테고리 목록, 전체 상품 목록 캐싱
-        getCacheItemList(null, "category");
-        getCacheItemList(null, "product");
+    public void run(ApplicationArguments args) throws Exception {
+
+        //전체 카테고리 목록 캐싱
+        List<CategoryDto> categoryList = categoryService.selectCategories();
+        setCache(categoryList, "category");
+
+        //카테고리별 상품 목록 캐싱
+        for (CategoryDto category : categoryList) {
+            HashMap<String, String> paramMap = new HashMap<>();
+            paramMap.put("category_name", category.getCategory_name());
+
+            setCache(productService.selectProducts(paramMap), category.getCategory_name());
+        }
     }
 
     @Override
-    public Object getCacheItemList(Map<String, String> paramMap, String flag) throws Exception {
+    public void setCache(Object list, String key) throws Exception {
 
-        List<ProductDto> resultList = new ArrayList<>();
+        List<Object> beforeCacheList = (List<Object>) list;
+
+        if (beforeCacheList == null || beforeCacheList.size() == 0 || key == null) return;
+
         long now = System.currentTimeMillis();
 
-        String key_value = searchKeyValue(paramMap, flag);
-        List<Map<String, String>> list = (List<Map<String, String>>) cacheMap.get(key_value);
-
-        long loadTime = list != null ? Long.parseLong(list.get(0).get("loadTime")) : now;
-
-        //캐시유지시간을 지났을때에도 캐시를 갱신하여 최신 상태로 유지한다.
-        if (list == null || now - loadTime > cacheDuration) {
-            loadTimeMap = new HashMap<>();
-            loadTimeMap.put("loadTime", Long.toString(now));
-            cacheItem(paramMap, flag);
-        } else {
-            replaceCache(list, key_value);
-        }
-
-        if (cacheMap.get(key_value) != null) {
-            resultList.addAll((List<ProductDto>) cacheMap.get(key_value));
-            resultList.remove(0); //return 할 list는 0번째인 loadTime 제거
-        }
-
-        return resultList;
-    }
-
-    /*
-     * 캐시 객체에 들어 갈 항목을 조회하고, 캐시 객체가 꽉 찼을때 객체에 가장 오래 머물러 있던 항목을 지운다.
-     *
-     * 메소드가 실행되는 상황 :
-     *  1. 사용자가 조회하려는 조건이 캐시에 없을 때
-     *  2. 검색한 조건에 대한 캐시를 갖고있지만 해당 객체가 캐시 유지 시간을 초과했을때
-     *
-     * LRU 알고리즘 사용 이유 : 가장 최근에 사용된 적이 없는 캐시의 메모리부터 대체하기 때문에 Cache miss가 제일 적게 발생된다.
-     *
-     * */
-    @Override
-    public void cacheItem(Map<String, String> paramMap, String flag) throws Exception {
-
-        Object flagObj = flag.equals("category") ? categoryService.selectCategories() : productService.selectProducts(paramMap);
-
-        if (((List) flagObj).size() == 0) {
-            return;
-        }
-
-        String key_value = searchKeyValue(paramMap, flag);
-        List<Map<String, String>> flagList = (List<Map<String, String>>) flagObj;
-
-        // Cache Eviction(캐시크기가 꽉 찼을때 캐시 객체의 마지막 항목 remove)
+        //Cache Evict(캐시 메모리가 모두 찼을때 캐시 객체의 마지막 항목 remove)
         while (cacheMap.size() >= cacheMaxSize) {
-            String lastkey = "";
-            for (Map.Entry<String, Object> entry : cacheMap.entrySet()) {
-                lastkey = entry.getKey();
-            }
-            cacheMap.remove(lastkey);
+            evictCache(null);
+        }
+        //카테고리가 아닌 상품 검색인 경우에는 캐시 유지 시간을 관리하기 위해 list의 0번째에 loadTime을 add
+        if (!"category".equals(key)) {
+            HashMap<String, String> loadTimeMap = new HashMap<>();
+            loadTimeMap.put("loadTime", Long.toString(now));
+
+            beforeCacheList.add(0, loadTimeMap);
         }
 
-        flagList.add(0, loadTimeMap); //cache가 생성된 시간을 list의 0번째에 add (캐시에 저장된 모든 list의 0번째는 "loadTime"을 넣어 캐시 유지 시간을 관리한다.)
+        replaceCache(beforeCacheList, key);
 
-        replaceCache(flagList, key_value);
     }
 
-    //최근에 조회 한 결과를 캐시 객체의 가장 앞쪽으로 배치한다.
     @Override
-    public void replaceCache(Object list, String key_value) {
+    public Object getCache(String key) {
 
-        Map<String, Object> cloneMap = new LinkedHashMap<>();
+        if (key == null) return null;
 
-        cacheMap.remove(key_value); //같은 key가 있을 수 있기 때문에 remove후 put 한다.
+        List<HashMap<String, String>> cacheList = (List<HashMap<String, String>>) cacheMap.get(key);
+
+        if (cacheList != null && cacheList.size() != 0) {
+            replaceCache(cacheList, key);
+            if (!"category".equals(key)) {
+                cacheList.remove(0);
+            }
+        }
+        return cacheList;
+    }
+
+    @Override
+    public void evictCache(String key) {
+        /*
+        * case 3. Cache Data Eviction Policy
+        * 캐시 메모리가 차서 Evict 처리를 해야할때 LRU 알고리즘 사용
+        * 가장 최근에 사용된 적이 없는 캐시의 메모리부터 대체하기 때문에 Cache miss가 제일 적게 발생된다.
+        * */
+        if (key == null) {
+            for (Map.Entry<String, Object> entry : cacheMap.entrySet()) {
+                key = entry.getKey();
+            }
+        }
+        cacheMap.remove(key);
+    }
+
+    //최근에 조회 한 결과를 캐시 객체의 가장 앞쪽으로 교체
+    @Override
+    public void replaceCache(Object beforCacheListWithTime, String key) {
+        HashMap<String, Object> cloneMap = new LinkedHashMap<>();
+        cacheMap.remove(key); //같은 key가 있을 수 있기 때문에 remove후 put 한다.
         cloneMap.putAll(cacheMap);
 
         cacheMap.clear();
-        cacheMap.put(key_value, list);
+        cacheMap.put(key, beforCacheListWithTime);
         cacheMap.putAll(cloneMap);
-
     }
 
-    //사용자가 검색한 검색 조건을 통해 캐시에 저장 할 key값을 생성
+    //캐시 만료 확인
     @Override
-    public String searchKeyValue(Map<String, String> paramMap, String flag) {
+    public boolean checkCacheExpired(String key) {
 
-        String key = flag;
-        String value = "all";
+        List<HashMap<String, String>> cacheList = (List<HashMap<String, String>>) cacheMap.get(key);
 
-        if (paramMap != null && paramMap.size() != 0) {
-            Map.Entry<String, String> entry = paramMap.entrySet().iterator().next();
-            key = entry.getKey();
-            value = entry.getValue();
+        long now = System.currentTimeMillis();
+        long loadTime = Long.parseLong(cacheList.get(0).get("loadTime"));
+
+        if (cacheList == null || now - loadTime > productCacheDuration) { //만료됐을때 return true
+            return true;
         }
 
-        return key + "_" + value;
+        return false;
     }
-
-
 }

@@ -5,8 +5,8 @@ import com.apmall.dto.product.ProductDto;
 import com.apmall.service.product.ProductService;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -18,7 +18,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductDto> selectProducts(Map<String, String> paramMap) throws Exception {
+    public List<ProductDto> selectProducts(HashMap<String, String> paramMap) throws Exception {
         return productDAO.selectProducts(paramMap);
     }
 

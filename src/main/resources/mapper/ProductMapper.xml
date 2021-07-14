@@ -4,25 +4,13 @@
 <mapper namespace="com.apmall.dao.product.ProductDAO">
     <select id="selectProducts" resultType="com.apmall.dto.product.ProductDto">
         SELECT
-        	product_name, product_price, category_name
+			product_no, product_name, brand_name, product_price, category_name, PRD.category_no
         FROM product PRD
         LEFT JOIN (
-			SELECT
-				A.category_no,
-				CASE
-					WHEN A.depth = 2
-						THEN B.category_name || '_' || A.category_name
-					ELSE A.category_name
-				END category_name
-			FROM category A
-			LEFT JOIN category B
-			ON A.parent_no = B.category_no
+			<include refid="com.apmall.dao.category.CategoryDAO.incCategories"/>
         )CT
         ON PRD.category_no = CT.category_no
 		<where>
-			<if test="product_id != null and product_id != ''">
-				AND product_id = #{product_id}
-			</if>
 			<if test="product_name != null and product_name != ''">
 				AND product_name = #{product_name}
 			</if>
@@ -33,7 +21,7 @@
     </select>
 
 	<insert id="insertProduct">
-		<selectKey keyProperty="product_no" resultType="Integer" order="BEFORE">
+		<selectKey keyProperty="product_no" resultType="String" order="BEFORE">
 			SELECT IFNULL(MAX(product_no),0)+1 as product_no FROM PRODUCT
 		</selectKey>
 		INSERT INTO product(

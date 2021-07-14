@@ -3,21 +3,26 @@
 
 <mapper namespace="com.apmall.dao.category.CategoryDAO">
 
-	<select id="selectCategories" resultType="com.apmall.dto.category.CategoryDto">
+	<sql id="incCategories">
 		SELECT
 			A.category_no,
 			CASE
 				WHEN A.depth = 2
 					THEN B.category_name || '_' || A.category_name
 				ELSE A.category_name
-			END category_name
+			END category_name,
+			A.parent_no, A.depth
 		FROM category A
 		LEFT JOIN category B
 		ON A.parent_no = B.category_no
+	</sql>
+
+	<select id="selectCategories" resultType="com.apmall.dto.category.CategoryDto">
+		<include refid="incCategories"/>
 	</select>
 
 	<insert id="insertCategory">
-		<selectKey keyProperty="category_no" resultType="_int" order="BEFORE">
+		<selectKey keyProperty="category_no" resultType="String" order="BEFORE">
 			SELECT IFNULL(MAX(category_no),0)+1 as category_no FROM category
 		</selectKey>
 		INSERT INTO category(
