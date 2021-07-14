@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -59,10 +60,10 @@ public class ProductController {
                 cacheList = selectList != null ? (List<ProductDto>) cacheService.getCache(key) : null;
             }
 
-            resultMap = DefaultRes.selectRes(cacheList);
+            resultMap = DefaultRes.getRes(Collections.singletonList(cacheList));
 
         } else { //parameter가 올바르지 않을때
-            resultMap = DefaultRes.badRequest();
+            resultMap = DefaultRes.getBadRequestRes();
         }
 
 
@@ -84,9 +85,9 @@ public class ProductController {
 
         if (!paramFlag) {
             int successRow = productService.insertProduct(productDto);
-            resultMap = DefaultRes.updateRes(successRow);
+            resultMap = DefaultRes.getRes(successRow);
         } else {
-            resultMap = DefaultRes.badRequest();
+            resultMap = DefaultRes.getBadRequestRes();
         }
         return new ResponseEntity(resultMap.get("defaultRes"), (org.springframework.http.HttpStatus) resultMap.get("HttpStatus"));
     }
@@ -98,9 +99,9 @@ public class ProductController {
 
         if (!paramFlag) {
             int successRow = productService.updateProduct(productDto);
-            resultMap = DefaultRes.updateRes(successRow);
+            resultMap = DefaultRes.getRes(successRow);
         } else {
-            resultMap = DefaultRes.badRequest();
+            resultMap = DefaultRes.getBadRequestRes();
         }
 
         return new ResponseEntity(resultMap.get("defaultRes"), (org.springframework.http.HttpStatus) resultMap.get("HttpStatus"));
@@ -113,9 +114,9 @@ public class ProductController {
 
         if (!paramFlag) {
             int successRow = productService.deleteProduct(productDto);
-            resultMap = DefaultRes.updateRes(successRow);
+            resultMap = DefaultRes.getRes(successRow);
         } else {
-            resultMap = DefaultRes.badRequest();
+            resultMap = DefaultRes.getBadRequestRes();
         }
 
         return new ResponseEntity(resultMap.get("defaultRes"), (org.springframework.http.HttpStatus) resultMap.get("HttpStatus"));

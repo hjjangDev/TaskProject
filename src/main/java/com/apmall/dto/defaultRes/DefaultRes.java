@@ -19,7 +19,6 @@ public class DefaultRes<T> {
     public String responseMessage;
     public T data;
 
-
     public DefaultRes(final int statusCode, final String responseMessage) {
         this.statusCode = statusCode;
         this.responseMessage = responseMessage;
@@ -39,9 +38,9 @@ public class DefaultRes<T> {
     }
 
 
-    public static HashMap<String, Object> selectRes(final Object result) {
+    public static HashMap<String, Object> getRes(List<Object> result) {
         HashMap<String, Object> resMap = new HashMap<>();
-        List<Object> resultList = (List<Object>) result;
+        List<Object> resultList = result;
 
         if (resultList != null && resultList.size() != 0) {
             resMap.put("defaultRes", res(StatusCode.OK, ResponseMessage.SUCCESS, result));
@@ -54,7 +53,7 @@ public class DefaultRes<T> {
         return resMap;
     }
 
-    public static HashMap<String, Object> updateRes(final int result) {
+    public static HashMap<String, Object> getRes(int result) {
 
         HashMap<String, Object> resMap = new HashMap<>();
 
@@ -70,7 +69,7 @@ public class DefaultRes<T> {
         return resMap;
     }
 
-    public static HashMap<String, Object> badRequest() {
+    public static HashMap<String, Object> getBadRequestRes() {
 
         HashMap<String, Object> resMap = new HashMap<>();
 

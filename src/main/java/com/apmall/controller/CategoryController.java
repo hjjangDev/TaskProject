@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -38,7 +39,7 @@ public class CategoryController {
             cacheList = (List<ProductDto>) cacheService.getCache(key);
         }
 
-        resultMap = DefaultRes.selectRes(cacheList);
+        resultMap = DefaultRes.getRes(Collections.singletonList(cacheList));
 
         return new ResponseEntity(resultMap.get("defaultRes"), (org.springframework.http.HttpStatus) resultMap.get("HttpStatus"));
 
@@ -58,9 +59,9 @@ public class CategoryController {
 
         if (!paramFlag) {
             int successRow = categoryService.insertCategory(categoryDto);
-            resultMap = DefaultRes.updateRes(successRow);
+            resultMap = DefaultRes.getRes(successRow);
         } else {
-            resultMap = DefaultRes.badRequest();
+            resultMap = DefaultRes.getBadRequestRes();
         }
         return new ResponseEntity(resultMap.get("defaultRes"), (org.springframework.http.HttpStatus) resultMap.get("HttpStatus"));
     }
@@ -73,9 +74,9 @@ public class CategoryController {
 
         if (!paramFlag) {
             int successRow = categoryService.updateCategory(categoryDto);
-            resultMap = DefaultRes.updateRes(successRow);
+            resultMap = DefaultRes.getRes(successRow);
         } else {
-            resultMap = DefaultRes.badRequest();
+            resultMap = DefaultRes.getBadRequestRes();
         }
 
         return new ResponseEntity(resultMap.get("defaultRes"), (org.springframework.http.HttpStatus) resultMap.get("HttpStatus"));
@@ -90,9 +91,9 @@ public class CategoryController {
 
         if (!paramFlag) {
             int successRow = categoryService.deleteCategory(categoryDto);
-            resultMap = DefaultRes.updateRes(successRow);
+            resultMap = DefaultRes.getRes(successRow);
         } else {
-            resultMap = DefaultRes.badRequest();
+            resultMap = DefaultRes.getBadRequestRes();
         }
 
         return new ResponseEntity(resultMap.get("defaultRes"), (org.springframework.http.HttpStatus) resultMap.get("HttpStatus"));
