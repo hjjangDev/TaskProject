@@ -46,7 +46,7 @@ public class DefaultRes<T> {
             resMap.put("defaultRes", res(StatusCode.OK, ResponseMessage.SUCCESS, result));
             resMap.put("HttpStatus", HttpStatus.OK);
         } else {
-            resMap.put("defaultRes", res(StatusCode.NO_CONTENT, ResponseMessage.NO_CONTENT));
+            resMap.put("defaultRes", res(StatusCode.NOT_FOUND, ResponseMessage.NOT_FOUND));
             resMap.put("HttpStatus", HttpStatus.NO_CONTENT);
         }
 
@@ -62,8 +62,8 @@ public class DefaultRes<T> {
             resMap.put("HttpStatus", HttpStatus.OK);
         } else {
 
-            resMap.put("defaultRes", res(StatusCode.NO_CONTENT, ResponseMessage.NO_CONTENT));
-            resMap.put("HttpStatus", HttpStatus.NO_CONTENT);
+            resMap.put("defaultRes", res(StatusCode.NOT_FOUND, ResponseMessage.NOT_FOUND));
+            resMap.put("HttpStatus", HttpStatus.NOT_FOUND);
         }
 
         return resMap;
