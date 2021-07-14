@@ -6,7 +6,6 @@
     - D:\\task\\TaskProject\\task.db' 이 부분을 PC의 .db 파일 위치에 맞게 수정하시면 됩니다.
 
 ### API 목록
-
 #### [GET] /category : 카테고리 전체 목록
 - **URL Params Required:**  None
 - **Success Response:**
@@ -41,6 +40,7 @@
     ```
 - **Sample Call:** <br>
     `http://localhost:8081/category`
+---
 #### [POST] /category : 카테고리 추가
 - **Body Params Required:**
     - category_name
@@ -76,6 +76,7 @@
     "depth" : 1
    }
    ```
+---
 #### [PUT] /category : 카테고리 수정
 - **Body Params Required:**
    - category_no
@@ -114,6 +115,7 @@
     "category_name" : "테스트 카테고리2"
   }
   ```
+---
 #### [DELETE] /category : 카테고리 삭제
 - **Body Params Required:**
    - category_no
@@ -147,7 +149,7 @@
     "category_no":11
   }
   ```
-
+---
 #### [GET] /product : 상품 목록
 - **URL Params Required:** 아래 파라미터중 1개 필수
     - category_name
@@ -185,7 +187,7 @@
      - Code: 204
 - **Sample Call:** <br>
     `http://localhost:8081/product?product_name=바이탈뷰티(아) 슬리머에스 35EA (16)`
-       
+---
 #### [POST] /product : 상품 추가
 - **Body Params Required:**
     - product_name
@@ -223,6 +225,7 @@
        "category_no" : 3
    }
    ```
+---
 #### [PUT] /product : 상품 수정
 - **Body Params Required:**
    - product_no
@@ -263,7 +266,7 @@
       "brand_name" : "테스트 브랜드2"
   }
   ```
-      
+---
 #### [DELETE] /product/delete : 상품 삭제
 - **Body Params Required:**
    - product_no
