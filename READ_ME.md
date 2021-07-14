@@ -2,8 +2,8 @@
 
 ### 현재 프로젝트 설정 (appication.properties 파일에 설정)
 - server.port=8081
-- spring.datasource.url=jdbc:sqlite:C:\\_sqlite\\task2.db <br>
-    - 'C:\\_sqlite\\task2.db' 이 부분을 PC의 .db 파일 위치에 맞게 수정하시면 됩니다.
+- spring.datasource.url=jdbc:sqlite:D:\\task\\TaskProject\\task.db <br>
+    - D:\\task\\TaskProject\\task.db' 이 부분을 PC의 .db 파일 위치에 맞게 수정하시면 됩니다.
 
 ### API 목록
 
